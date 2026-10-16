@@ -1,0 +1,30 @@
+# Render deployment config — defines both services (API + dashboard).
+# Render reads this on connect and provisions everything automatically.
+services:
+  # --- Backend API ---
+  - type: web
+    name: rag-eval-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false          # set manually in the dashboard; never in the repo
+      - key: DATABASE_URL
+        value: sqlite:////var/data/eval_platform.db
+    disk:
+      name: eval-data
+      mountPath: /var/data   # persists the SQLite DB across restarts
+      sizeGB: 1
+
+  # --- Dashboard ---
+  - type: web
+    name: rag-eval-dashboard
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: streamlit run dashboard/app.py --server.port $PORT --server.address 0.0.0.0
+    plan: free
+    envVars:
+      - key: API_BASE
+        sync: false          # set to the API's URL after it deploys
