@@ -1,5 +1,6 @@
 # Render deployment config — defines both services (API + dashboard).
-# Render reads this on connect and provisions everything automatically.
+# Free tier: no persistent disk, so the SQLite DB resets on restart.
+# Production path is Postgres (swap via DATABASE_URL) — see README roadmap.
 services:
   # --- Backend API ---
   - type: web
@@ -11,12 +12,6 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false          # set manually in the dashboard; never in the repo
-      - key: DATABASE_URL
-        value: sqlite:////var/data/eval_platform.db
-    disk:
-      name: eval-data
-      mountPath: /var/data   # persists the SQLite DB across restarts
-      sizeGB: 1
 
   # --- Dashboard ---
   - type: web
